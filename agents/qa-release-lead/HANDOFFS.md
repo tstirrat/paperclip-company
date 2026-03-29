@@ -4,8 +4,9 @@ Read this when handing off or receiving a task.
 
 ## Receiving Work from Staff Engineer
 
-- Read the handoff comment — it should tell you what was built and how to test it
-- If context is missing, ask via comment before starting review
+- Read the handoff comment — it should tell you what was built, the branch name, and how to test
+- If context is missing, ask via comment before starting triage
+- Run the triage steps in `WAKE-CHECKLIST.md` step 6a before doing anything else
 
 ## Done Criteria
 
@@ -17,9 +18,20 @@ You are done when ALL of these are true:
 - Every auto-reviewer comment addressed
 - PR merged
 
-## Sending Back to Staff Engineer
+## Send-Back Path (Incorrect Engineer Process)
 
-If review finds issues:
+When triage reveals work arrived outside a worktree/branch (committed directly to local
+main, or no worktree exists):
+1. Do NOT review or merge any code
+2. Reassign to **Staff Engineer** with status `todo`
+3. Comment explaining:
+   - What was wrong (e.g. committed to main repo directly, no worktree)
+   - What is required: create a worktree from `origin/main`, work on a named branch
+     (e.g. `AGE-XX-title`), push to GitHub, then reassign back to QA
+
+## Sending Back to Staff Engineer (Review Issues)
+
+If review finds code quality issues:
 1. Reassign to **Staff Engineer** with status `in_progress`
 2. Comment with a specific, numbered fix list
 
@@ -28,7 +40,18 @@ Yes: "Line 42 — this will break under concurrent access because X. Fix by usin
 
 > "Review found [N] issues before merge: [numbered list]. Please fix and return."
 
-## Completing the Pipeline
+## Post-Merge Cleanup (Work Already Merged)
+
+When triage confirms work is on `origin/main` with a merged PR:
+1. Confirm: `gh pr view --json state,mergedAt,mergeCommit` — verify `"MERGED"`
+2. Run `sync-docs` to catch any documentation or CHANGELOG drift
+3. Remove the worktree if one exists: `git worktree remove <path> --force`
+4. Mark task `done`, comment with PR link and any doc updates made
+5. Reassign to **CEO** for completion tracking
+
+Do NOT re-run `orchestrate-review` or `validate-delivery` — code is already in production.
+
+## Completing the Pipeline (Normal Path)
 
 After merge:
 1. Mark task `done`

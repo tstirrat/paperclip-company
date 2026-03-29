@@ -16,18 +16,21 @@ You are done when ALL of these are true:
 - `deslop` run and AI artifacts removed
 - `validate-delivery` confirms requirements met, no regressions
 - If agent prompts/skills modified: `enhance-prompts` run
+- All changes committed on the worktree branch (not on main) with conventional commit messages
+- Each commit includes `Co-Authored-By: Paperclip <noreply@paperclip.ing>`
 
 ## Handing Off to QA & Release Lead
 
 When done criteria are met:
 1. Reassign to **QA & Release Lead** with status `in_review`
 2. Comment with:
+   - Branch name (e.g. `AGE-XX-title`)
    - What was built (brief change summary)
    - How to test it (key test scenarios)
    - Any known edge cases or risks
    - Any plan deviations and why
 
-> "Implementation complete. [What was built]. [How to test]. Ready for review."
+> "Implementation complete on branch `[branch-name]`. [What was built]. [How to test]. Ready for review."
 
 ## When QA Sends Back Fixes
 

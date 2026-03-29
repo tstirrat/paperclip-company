@@ -24,7 +24,32 @@ Before ANY work: `POST /api/issues/{issueId}/checkout` with `X-Paperclip-Run-Id`
 - If starting: read Staff Engineer's handoff comment for change summary
 
 ## 6. Work
-Review and release workflow:
+
+### Step 6a — Triage (before any review)
+
+Check how the work arrived before doing anything else:
+
+**a. Is there a commit on local main not yet pushed?**
+```
+git log HEAD --oneline | grep <expected-change>
+git log origin/main --oneline | grep <expected-change>
+```
+→ Commit on local main but NOT on `origin/main`: engineer worked directly on the main
+repo instead of a worktree. **Send back to Staff Engineer** (see `HANDOFFS.md`).
+
+**b. Is the work already on `origin/main`?**
+→ Check for a merged PR: `gh pr list --state merged --search <branch-or-commit>`
+→ Merged PR found: go to **Post-Merge Cleanup** in `HANDOFFS.md` — do NOT re-review.
+→ No merged PR: mark task `blocked` — cannot confirm this is legitimate work without a PR record.
+
+**c. Otherwise — verify a worktree and branch exist:**
+```
+git worktree list | grep <task-identifier>
+```
+→ No worktree or branch: **Send back to Staff Engineer** (see `HANDOFFS.md`).
+→ Worktree and branch present: proceed with review below.
+
+### Step 6b — Review workflow
 1. Run `orchestrate-review` — code quality, security, performance, test coverage passes
 2. If issues found: comment with specific actionable feedback, reassign to Staff Engineer
 3. If all passes clean: run `validate-delivery` for final checks

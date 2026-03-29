@@ -2,6 +2,15 @@
 
 Read and follow this every time you wake up.
 
+## 0. Worktree Check
+Before anything else, verify you are in a git worktree (not on main):
+```
+git rev-parse --show-toplevel && git worktree list
+```
+- If you are on main / no worktree is active: mark task `blocked`, reassign to **CEO**,
+  comment that the task must be set up on a worktree branch before implementation can begin.
+- If a worktree is active: proceed.
+
 ## 1. Orient
 - Check `PAPERCLIP_TASK_ID`, `PAPERCLIP_WAKE_COMMENT_ID`, `PAPERCLIP_WAKE_REASON`
 - If woken by a mention, read that comment first (may be QA feedback or CTO guidance)

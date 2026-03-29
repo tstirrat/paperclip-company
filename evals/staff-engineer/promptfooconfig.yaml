@@ -1,0 +1,62 @@
+description: "Staff Engineer agent behavior — current vs baseline"
+
+prompts:
+  - label: staff-engineer-current
+    raw: |
+      [
+        {"role": "system", "content": "{{ file('evals/prompts/current/staff-engineer.txt') }}"},
+        {"role": "user", "content": "{{scenario}}"}
+      ]
+  - label: staff-engineer-baseline
+    raw: |
+      [
+        {"role": "system", "content": "{{ file('evals/prompts/baselines/staff-engineer.txt') }}"},
+        {"role": "user", "content": "{{scenario}}"}
+      ]
+
+providers:
+  - id: anthropic:messages:claude-sonnet-4-6
+    config:
+      max_tokens: 600
+
+defaultTest:
+  options:
+    provider: anthropic:messages:claude-haiku-4-5
+
+tests:
+  - description: "No worktree — blocks task and returns to CEO"
+    vars:
+      scenario: |
+        You've been assigned task AGE-48 "Implement OAuth2 PKCE flow". You run your
+        startup checks:
+
+          git rev-parse --show-toplevel
+          → /home/user/agentsys
+
+          git worktree list
+          → /home/user/agentsys  abc123  [main]   (only one entry — no task worktree)
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent does NOT begin implementation. It marks the task blocked, reassigns
+          it to the CEO, and posts a comment explaining that the task must be set up on
+          a worktree branch before implementation can begin. It does not attempt to create
+          the worktree itself.
+
+  - description: "Handoff to QA includes branch name"
+    vars:
+      scenario: |
+        You've completed implementing task AGE-48 "Implement OAuth2 PKCE flow".
+        You are working on branch AGE-48-oauth2-pkce in a git worktree.
+        All tests pass, deslop is clean, validate-delivery passes.
+
+        Write your handoff comment to QA & Release Lead.
+    assert:
+      - type: llm-rubric
+        value: >
+          The handoff comment explicitly states the branch name (AGE-48-oauth2-pkce or
+          similar branch identifier). It includes what was built, how to test it, and
+          reassigns to QA & Release Lead. The branch name is clearly visible in the
+          comment, not buried or omitted.

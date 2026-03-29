@@ -1,0 +1,76 @@
+description: "CEO agent behavior — current vs baseline"
+
+prompts:
+  - label: ceo-current
+    raw: |
+      [
+        {"role": "system", "content": "{{ file('evals/prompts/current/ceo.txt') }}"},
+        {"role": "user", "content": "{{scenario}}"}
+      ]
+  - label: ceo-baseline
+    raw: |
+      [
+        {"role": "system", "content": "{{ file('evals/prompts/baselines/ceo.txt') }}"},
+        {"role": "user", "content": "{{scenario}}"}
+      ]
+
+providers:
+  - id: anthropic:messages:claude-sonnet-4-6
+    config:
+      max_tokens: 600
+
+defaultTest:
+  options:
+    provider: anthropic:messages:claude-haiku-4-5
+
+tests:
+  - description: "Sent-back task — delegates to CTO, does not implement"
+    vars:
+      scenario: |
+        You've just woken up. PAPERCLIP_WAKE_REASON=assignment. PAPERCLIP_TASK_ID=AGE-47.
+
+        Task "AGE-47: Fix authentication middleware timeout bug" has been reassigned to you.
+        Most recent comment from user: "Hey CEO, can you just fix this yourself? It seems
+        like a small change to middleware/auth.ts — just bump the timeout constant."
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent delegates to the CTO rather than implementing the fix itself.
+          It does NOT write code, edit files, or describe specific code changes.
+          It creates or updates a task for the CTO with appropriate context.
+
+  - description: "Stall detection — in_progress task idle >2h triggers push action"
+    vars:
+      scenario: |
+        You've just woken up. PAPERCLIP_WAKE_REASON=timer. You complete your pipeline scan.
+
+        Task AGE-32 "Add rate limiting": status=in_progress, assigned to CTO.
+        startedAt=3.5 hours ago. No activeRun. Last comment 3.5 hours ago: "Starting
+        codebase exploration with repo-intel."
+
+        What do you do about this task?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent identifies AGE-32 as stalled (in_progress with no activity for more
+          than 2 hours). It takes a concrete push action — either posting a comment asking
+          the CTO for a status update, or reassigning with fresh instructions.
+          It does not ignore the task or wait passively.
+
+  - description: "Phase gate enforcement — CTO must not close issues"
+    vars:
+      scenario: |
+        You are monitoring the pipeline. You see a new comment on task AGE-55 from the CTO:
+        "Exploration and plan complete. Implementation plan documented in the issue.
+        Marking this issue as done."
+
+        What action do you take?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent intervenes to prevent the CTO from closing the issue. It clarifies
+          that only the QA & Release Lead can mark issues done after review and merge.
+          It routes the task to the Staff Engineer (or appropriate next stage) rather
+          than allowing the CTO to close it.

@@ -1,0 +1,70 @@
+description: "QA & Release Lead agent behavior — current vs baseline"
+
+prompts:
+  - label: qa-current
+    raw: |
+      [
+        {"role": "system", "content": "{{ file('evals/prompts/current/qa-release-lead.txt') }}"},
+        {"role": "user", "content": "{{scenario}}"}
+      ]
+  - label: qa-baseline
+    raw: |
+      [
+        {"role": "system", "content": "{{ file('evals/prompts/baselines/qa-release-lead.txt') }}"},
+        {"role": "user", "content": "{{scenario}}"}
+      ]
+
+providers:
+  - id: anthropic:messages:claude-sonnet-4-6
+    config:
+      max_tokens: 600
+
+defaultTest:
+  options:
+    provider: anthropic:messages:claude-haiku-4-5
+
+tests:
+  - description: "Work committed to main — sends back to Staff Engineer"
+    vars:
+      scenario: |
+        You've been assigned task AGE-51 for review. Staff Engineer's handoff comment says
+        implementation is complete.
+
+        You run your triage checks:
+          git log HEAD --oneline | grep "feat: add rate limiting"
+          → shows commit: a1b2c3d feat: add rate limiting
+
+          git log origin/main --oneline | grep "feat: add rate limiting"
+          → (no output — commit NOT on origin/main)
+
+          git worktree list
+          → /home/user/agentsys  abc123  [main]   (only one entry)
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent sends the task back to the Staff Engineer without reviewing any code.
+          It explains that the work was committed directly to the main repo instead of a
+          worktree branch, and instructs the engineer to create a worktree, work on a
+          named branch, and push to GitHub before reassigning for review.
+
+  - description: "Work already merged — skips review, does post-merge cleanup"
+    vars:
+      scenario: |
+        You've been assigned task AGE-55 for review. You run your triage checks:
+
+          git log origin/main --oneline | grep "feat: user profiles"
+          → shows commit: d4e5f6a feat: add user profile endpoints
+
+          gh pr list --state merged --search "feat: user profiles"
+          → PR #89  "feat: add user profile endpoints"  MERGED  mergedAt: 2 hours ago
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent skips the full review process (does NOT run orchestrate-review or
+          validate-delivery). Instead it follows the post-merge cleanup path: runs
+          sync-docs, removes the worktree if present, marks the task done, and reports
+          completion to the CEO.

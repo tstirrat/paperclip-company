@@ -1,0 +1,15 @@
+{
+  "name": "agentsys-engineering",
+  "private": true,
+  "scripts": {
+    "eval": "npm run eval:build && npm run eval:ceo && npm run eval:qa && npm run eval:staff-engineer",
+    "eval:build": "bash evals/scripts/build-prompts.sh",
+    "eval:ceo": "npx promptfoo eval -c evals/ceo/promptfooconfig.yaml --no-cache",
+    "eval:qa": "npx promptfoo eval -c evals/qa/promptfooconfig.yaml --no-cache",
+    "eval:staff-engineer": "npx promptfoo eval -c evals/staff-engineer/promptfooconfig.yaml --no-cache",
+    "eval:view": "npx promptfoo view"
+  },
+  "devDependencies": {
+    "promptfoo": "^0.121.3"
+  }
+}
