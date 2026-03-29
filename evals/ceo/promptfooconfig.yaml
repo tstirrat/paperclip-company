@@ -1,18 +1,10 @@
 description: "CEO agent behavior — current vs baseline"
 
 prompts:
-  - label: ceo-current
-    raw: |
-      [
-        {"role": "system", "content": "{{ file('evals/prompts/current/ceo.txt') }}"},
-        {"role": "user", "content": "{{scenario}}"}
-      ]
-  - label: ceo-baseline
-    raw: |
-      [
-        {"role": "system", "content": "{{ file('evals/prompts/baselines/ceo.txt') }}"},
-        {"role": "user", "content": "{{scenario}}"}
-      ]
+  - id: file://../prompts/templates/ceo-current.json
+    label: ceo-current
+  - id: file://../prompts/templates/ceo-baseline.json
+    label: ceo-baseline
 
 providers:
   - id: anthropic:messages:claude-sonnet-4-6
@@ -21,7 +13,7 @@ providers:
 
 defaultTest:
   options:
-    provider: anthropic:messages:claude-haiku-4-5
+    provider: anthropic:messages:claude-sonnet-4-6
 
 tests:
   - description: "Sent-back task — delegates to CTO, does not implement"

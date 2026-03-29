@@ -1,18 +1,10 @@
 description: "Staff Engineer agent behavior — current vs baseline"
 
 prompts:
-  - label: staff-engineer-current
-    raw: |
-      [
-        {"role": "system", "content": "{{ file('evals/prompts/current/staff-engineer.txt') }}"},
-        {"role": "user", "content": "{{scenario}}"}
-      ]
-  - label: staff-engineer-baseline
-    raw: |
-      [
-        {"role": "system", "content": "{{ file('evals/prompts/baselines/staff-engineer.txt') }}"},
-        {"role": "user", "content": "{{scenario}}"}
-      ]
+  - id: file://../prompts/templates/staff-engineer-current.json
+    label: staff-engineer-current
+  - id: file://../prompts/templates/staff-engineer-baseline.json
+    label: staff-engineer-baseline
 
 providers:
   - id: anthropic:messages:claude-sonnet-4-6
@@ -21,7 +13,7 @@ providers:
 
 defaultTest:
   options:
-    provider: anthropic:messages:claude-haiku-4-5
+    provider: anthropic:messages:claude-sonnet-4-6
 
 tests:
   - description: "No worktree — blocks task and returns to CEO"

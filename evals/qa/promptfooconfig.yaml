@@ -1,18 +1,10 @@
 description: "QA & Release Lead agent behavior — current vs baseline"
 
 prompts:
-  - label: qa-current
-    raw: |
-      [
-        {"role": "system", "content": "{{ file('evals/prompts/current/qa-release-lead.txt') }}"},
-        {"role": "user", "content": "{{scenario}}"}
-      ]
-  - label: qa-baseline
-    raw: |
-      [
-        {"role": "system", "content": "{{ file('evals/prompts/baselines/qa-release-lead.txt') }}"},
-        {"role": "user", "content": "{{scenario}}"}
-      ]
+  - id: file://../prompts/templates/qa-release-lead-current.json
+    label: qa-current
+  - id: file://../prompts/templates/qa-release-lead-baseline.json
+    label: qa-baseline
 
 providers:
   - id: anthropic:messages:claude-sonnet-4-6
@@ -21,7 +13,7 @@ providers:
 
 defaultTest:
   options:
-    provider: anthropic:messages:claude-haiku-4-5
+    provider: anthropic:messages:claude-sonnet-4-6
 
 tests:
   - description: "Work committed to main — sends back to Staff Engineer"
