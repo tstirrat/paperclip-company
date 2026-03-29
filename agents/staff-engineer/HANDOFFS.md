@@ -17,7 +17,6 @@ You are done when ALL of these are true:
 - `validate-delivery` confirms requirements met, no regressions
 - If agent prompts/skills modified: `enhance-prompts` run
 - All changes committed on the worktree branch (not on main) with conventional commit messages
-- Each commit includes `Co-Authored-By: Paperclip <noreply@paperclip.ing>`
 
 ## Handing Off to QA & Release Lead
 
