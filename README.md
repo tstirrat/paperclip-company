@@ -52,5 +52,23 @@ npx paperclipai company import this-github-url-or-folder
 
 See [Paperclip](https://paperclip.ing) for more information.
 
+## Runtime Configuration
+
+After importing this company into Paperclip, configure heartbeat triggers in the UI:
+
+| Agent | Timer Heartbeat | Wake on Assignment | Wake on Mention |
+|-------|-----------------|-------------------|-----------------|
+| Heartbeat Dispatcher | ✅ ON (every 5 min) | optional | optional |
+| CEO | ❌ OFF | ✅ ON | ✅ ON |
+| CTO | ❌ OFF | ✅ ON | ✅ ON |
+| Staff Engineer | ❌ OFF | ✅ ON | ✅ ON |
+| QA & Release Lead | ❌ OFF | ✅ ON | ✅ ON |
+| Research & Perf Analyst | ❌ OFF | ✅ ON | ✅ ON |
+
+**Why:** Timer heartbeats on idle agents burn 2–5K tokens per empty wake. The
+Heartbeat Dispatcher is the only agent that needs a timer — it scans for stalled
+work and nudges agents only when there's something to push. All other agents
+wake only when there's actual work for them.
+
 ---
 Exported from [Paperclip](https://paperclip.ing) on 2026-03-23

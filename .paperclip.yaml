@@ -4,7 +4,7 @@ agents:
     adapter:
       type: claude_local
       config:
-        model: claude-opus-4-6
+        model: claude-sonnet-4-6   # dispatching+orchestrating — sonnet is sufficient
     inputs:
       env:
         GH_TOKEN:
@@ -14,17 +14,17 @@ agents:
     adapter:
       type: claude_local
       config:
-        model: claude-opus-4-6
+        model: claude-opus-4-6    # planning and architecture — needs deep reasoning
   staff-engineer:
     adapter:
       type: claude_local
       config:
-        model: claude-opus-4-6
+        model: claude-sonnet-4-6  # executing pre-approved plans — sonnet is sufficient
   qa-release-lead:
     adapter:
       type: claude_local
       config:
-        model: claude-sonnet-4-6
+        model: claude-sonnet-4-6  # review and validation — correct
     inputs:
       env:
         GH_TOKEN:
@@ -34,4 +34,9 @@ agents:
     adapter:
       type: claude_local
       config:
-        model: claude-opus-4-6
+        model: claude-opus-4-6    # deep analysis and synthesis — needs Opus
+  heartbeat-dispatcher:
+    adapter:
+      type: claude_local
+      config:
+        model: claude-haiku-4-5   # scan and nudge only — cheapest model
