@@ -46,8 +46,35 @@ build_agent() {
   echo "Built $slug"
 }
 
+# Dispatcher uses AGENTS.md + SCAN-RULES.md (no WAKE-CHECKLIST or HANDOFFS)
+build_dispatcher() {
+  local slug="heartbeat-dispatcher"
+  local dir="$REPO_ROOT/agents/$slug"
+
+  {
+    cat "$dir/AGENTS.md"
+    echo ""
+    echo "---"
+    echo ""
+    cat "$dir/SCAN-RULES.md"
+  } > "$CURRENT/$slug.txt"
+
+  jq -n \
+    --rawfile instructions "$CURRENT/$slug.txt" \
+    '[{"role":"system","content":$instructions},{"role":"user","content":"{{scenario}}"}]' \
+    > "$TEMPLATES/$slug-current.json"
+
+  jq -n \
+    --rawfile instructions "$BASELINES/$slug.txt" \
+    '[{"role":"system","content":$instructions},{"role":"user","content":"{{scenario}}"}]' \
+    > "$TEMPLATES/$slug-baseline.json"
+
+  echo "Built $slug"
+}
+
 build_agent ceo
 build_agent qa-release-lead
 build_agent staff-engineer
+build_dispatcher
 
 echo "Done. Templates written to evals/prompts/templates/"

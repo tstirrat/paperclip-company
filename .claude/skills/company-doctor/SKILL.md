@@ -151,6 +151,28 @@ agents/<slug>/
                           Target: 20-30 lines.
 ```
 
+**For the Heartbeat Dispatcher**, use a two-phase pattern to minimise tokens on empty heartbeats:
+
+```
+agents/heartbeat-dispatcher/
+├── AGENTS.md           ← Identity, org chart, boundaries, AND the fast staleness filter
+│                         (issue query + threshold table + "if nothing stale, exit").
+│                         Target: 45-55 lines.
+└── SCAN-RULES.md       ← Read ONLY when stale issues are found. Full action table,
+                          blocked-marking rules, escalation logic, nudge examples.
+                          Target: 35-45 lines.
+```
+
+**Why two-phase?** The dispatcher runs on a timer. Most heartbeats are empty. The fast filter
+in AGENTS.md lets it fetch issues and decide in one step whether any action is needed — if not,
+it exits without loading SCAN-RULES.md. SCAN-RULES.md is only loaded when there is actually
+work to do. This saves tokens on every empty heartbeat.
+
+AGENTS.md must include the instruction:
+> "No stale issues found → exit immediately. One or more stale → read SCAN-RULES.md."
+
+The dispatcher doesn't use WAKE-CHECKLIST or HANDOFFS — its entire job is scanning and nudging.
+
 **AGENTS.md must include pointers** so the agent knows when to read each file:
 
 ```markdown
@@ -162,12 +184,19 @@ agents/<slug>/
 - **API mechanics (checkout, comments, headers)**: Use the Paperclip skill
 ```
 
+For the dispatcher, the pointer is simply:
+
+```markdown
+## Operating Procedure
+
+**Every wake-up:** Read and follow `SCAN-RULES.md`
+```
+
 This way a mid-task heartbeat (resuming code from last wake) loads AGENTS.md
 (lean identity + boundaries) and WAKE-CHECKLIST.md (orient and pick up where
 you left off), but skips HANDOFFS.md until it's actually time to hand off.
-
-The Heartbeat Dispatcher is an exception — its instructions are simple enough
-to fit in a single AGENTS.md with no supporting files.
+Progressive disclosure applies to ALL agents including the dispatcher — AGENTS.md
+should never contain procedural rules that belong in a supporting file.
 
 #### Writing Principles
 
@@ -266,7 +295,10 @@ that humans rarely interact with directly.
 
 #### What to generate
 
-Add `agents/heartbeat-dispatcher/AGENTS.md` to the company package.
+Add two files to `agents/heartbeat-dispatcher/`:
+- `AGENTS.md` — lean identity, org chart, boundaries, pointer to SCAN-RULES.md
+- `SCAN-RULES.md` — staleness thresholds, action table, blocked-marking rules, nudge examples
+
 See `references/instruction-patterns.md` for the full template.
 
 Key properties:
@@ -275,6 +307,7 @@ Key properties:
 - **Skills**: `paperclip` only
 - **Timer**: ON (e.g., every 5 minutes) — this is the ONLY agent with a timer
 - **No domain skills** — the dispatcher never does actual work, only pushes tasks
+- **AGENTS.md target**: 35-45 lines. If scan logic creeps in, move it to SCAN-RULES.md
 
 Update `.paperclip.yaml` to include the dispatcher with Haiku and to
 document that all other agents should have timers disabled.
@@ -314,7 +347,8 @@ Once approved, write the improved files back to the package folder:
 - `agents/<slug>/WAKE-CHECKLIST.md` — new (step-by-step wake-up procedure)
 - `agents/<slug>/HANDOFFS.md` — new (done criteria, handoff protocols, escalation)
 - `agents/<slug>/SOUL.md` — new (leadership roles only, if warranted)
-- `agents/heartbeat-dispatcher/AGENTS.md` — new dispatcher agent (if added)
+- `agents/heartbeat-dispatcher/AGENTS.md` — new dispatcher agent (if added); lean identity + pointer to SCAN-RULES.md
+- `agents/heartbeat-dispatcher/SCAN-RULES.md` — new (staleness thresholds, action table, blocked-marking, nudge examples)
 - `.paperclip.yaml` — updated model selections and dispatcher entry
 
 **YAML warning:** Do not add inline comments to `.paperclip.yaml` (e.g. `model: claude-sonnet-4-6  # reason`). The Paperclip YAML parser rejects them. Write clean YAML with no comments. Model rationale belongs in the diagnostic output to the user, not in the file.

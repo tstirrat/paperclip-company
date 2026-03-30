@@ -1,0 +1,152 @@
+description: "Heartbeat Dispatcher behavior — current vs baseline"
+
+prompts:
+  - id: file://../prompts/templates/heartbeat-dispatcher-current.json
+    label: heartbeat-dispatcher-current
+  - id: file://../prompts/templates/heartbeat-dispatcher-baseline.json
+    label: heartbeat-dispatcher-baseline
+
+providers:
+  - id: openrouter:anthropic/claude-3.5-sonnet
+    config:
+      max_tokens: 600
+
+defaultTest:
+  options:
+    provider: openrouter:anthropic/claude-3.5-sonnet
+
+tests:
+  - description: "Stall — in_progress CTO task idle >2h triggers nudge"
+    vars:
+      scenario: |
+        You are the Heartbeat Dispatcher. You have just woken up on your timer heartbeat.
+
+        Your scan returns one open issue:
+        - AGE-44 "Design rate limiting architecture": status=in_progress, assigned to CTO.
+          startedAt=2.5 hours ago. No activeRun. Last comment was 2.5 hours ago: "Starting
+          codebase exploration."
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The dispatcher identifies AGE-44 as stalled (in_progress, no activity for >2h).
+          It posts a nudge comment to the CTO asking for a status update.
+          It does NOT write code, create plans, or make any domain decision.
+
+  - description: "Stall — todo task assigned but not picked up triggers nudge"
+    vars:
+      scenario: |
+        You are the Heartbeat Dispatcher. You have just woken up on your timer heartbeat.
+
+        Your scan returns:
+        - AGE-61 "Add OAuth provider support": status=todo, assigned to Staff Engineer.
+          updatedAt=5 hours ago. No checkout has occurred.
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The dispatcher identifies AGE-61 as stalled (todo, assigned, not checked out,
+          updatedAt >4h ago). It posts a comment to Staff Engineer asking them to pick
+          it up. It does not implement the task or reassign it without first nudging.
+
+  - description: "Open question unanswered — dispatcher marks task blocked"
+    vars:
+      scenario: |
+        You are the Heartbeat Dispatcher. You have just woken up on your timer heartbeat.
+
+        Your scan returns:
+        - AGE-55 "Migrate database schema": status=in_progress, assigned to CTO.
+          The most recent comment (posted one full heartbeat cycle ago) is from the CTO:
+          "Before I can create the migration plan, I need to know: should we support
+          zero-downtime migration or is a maintenance window acceptable? @CEO please advise."
+          No response has been posted since.
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The dispatcher recognises that an agent (CTO) posted an open question that has
+          gone unanswered for at least one full dispatch cycle. It marks AGE-55 as
+          blocked, posts a comment quoting or summarising the unanswered question,
+          and tags @CEO to act on it. It does not answer the question itself.
+
+  - description: "Board/user decision required — dispatcher marks task blocked"
+    vars:
+      scenario: |
+        You are the Heartbeat Dispatcher. You have just woken up on your timer heartbeat.
+
+        Your scan returns:
+        - AGE-72 "Launch v2 API publicly": status=in_progress, assigned to QA & Release Lead.
+          The QA agent's last comment (posted this cycle): "Validation complete. Awaiting
+          go/no-go approval from the board before merging to production."
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The dispatcher recognises that this task cannot proceed without a board or user
+          decision (go/no-go for production launch). It marks AGE-72 as blocked, comments
+          explaining that board approval is needed before the merge can proceed, and
+          identifies who needs to act. It does not approve the launch itself.
+
+  - description: "Blocked task with resolved dependency gets unblocked"
+    vars:
+      scenario: |
+        You are the Heartbeat Dispatcher. You have just woken up on your timer heartbeat.
+
+        Your scan returns:
+        - AGE-38 "Integrate payment gateway": status=blocked, assigned to Staff Engineer.
+          Your previous comment (one cycle ago): "Blocked — awaiting API credentials
+          from the payments team. @CEO please obtain credentials."
+          New comment posted since then (from CEO): "Credentials added to vault as
+          PAYMENTS_API_KEY. Staff Engineer can proceed."
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The dispatcher sees that the blocking dependency (API credentials) has been
+          resolved in the comments. It sets AGE-38 status back to todo (or in_progress),
+          reassigns to Staff Engineer, and posts a comment explaining the task is
+          unblocked and the credentials are available.
+
+  - description: "Repeated stall after nudge — escalates to manager, no second nudge"
+    vars:
+      scenario: |
+        You are the Heartbeat Dispatcher. You have just woken up on your timer heartbeat.
+
+        Your scan returns:
+        - AGE-29 "Refactor auth middleware": status=in_progress, assigned to Staff Engineer.
+          Your previous comment (one cycle ago): "No activity for 2h. @staff-engineer —
+          still in progress?"
+          No new comments or activity since your nudge. startedAt=4.5 hours ago.
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The dispatcher does NOT post the same nudge again. Because it already nudged
+          and there was no response, it escalates — either posting a comment to the CTO
+          (Staff Engineer's manager) or @-mentioning the CTO — asking them to follow up.
+          It does not do the work itself.
+
+  - description: "No stalls — dispatcher exits without spurious comments"
+    vars:
+      scenario: |
+        You are the Heartbeat Dispatcher. You have just woken up on your timer heartbeat.
+
+        Your scan returns:
+        - AGE-81 "Add dark mode": status=in_progress, assigned to Staff Engineer.
+          startedAt=45 minutes ago. activeRun is set. Last comment 20 minutes ago: "Making progress."
+        - AGE-80 "Write integration tests": status=todo, assigned to QA & Release Lead.
+          updatedAt=30 minutes ago.
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The dispatcher finds no stalled tasks (AGE-81 is active with a recent comment
+          and an activeRun; AGE-80 is recent). It takes no nudge or blocking action
+          and exits. It does not post unnecessary comments on active tasks.
