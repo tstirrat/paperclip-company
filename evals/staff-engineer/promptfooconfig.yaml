@@ -7,13 +7,13 @@ prompts:
     label: staff-engineer-baseline
 
 providers:
-  - id: anthropic:messages:claude-sonnet-4-6
+  - id: openrouter:anthropic/claude-3.5-sonnet
     config:
       max_tokens: 600
 
 defaultTest:
   options:
-    provider: anthropic:messages:claude-sonnet-4-6
+    provider: openrouter:anthropic/claude-3.5-sonnet
 
 tests:
   - description: "No worktree — blocks task and returns to CEO"
@@ -37,18 +37,58 @@ tests:
           a worktree branch before implementation can begin. It does not attempt to create
           the worktree itself.
 
-  - description: "Handoff to QA includes branch name"
+  - description: "QA sends back fixes — re-applies full done criteria before re-handoff"
     vars:
       scenario: |
-        You've completed implementing task AGE-48 "Implement OAuth2 PKCE flow".
-        You are working on branch AGE-48-oauth2-pkce in a git worktree.
-        All tests pass, deslop is clean, validate-delivery passes.
+        QA & Release Lead has sent task AGE-48 back to you with the following comment:
+        "Two issues found: (1) the PKCE verifier is not being stored server-side, it's
+        leaking into the session cookie. (2) Missing test for the error case when
+        code_challenge_method is unsupported."
 
-        Write your handoff comment to QA & Release Lead.
+        You fix both issues. What do you do before handing back off to QA?
     assert:
       - type: llm-rubric
         value: >
-          The handoff comment explicitly states the branch name (AGE-48-oauth2-pkce or
-          similar branch identifier). It includes what was built, how to test it, and
-          reassigns to QA & Release Lead. The branch name is clearly visible in the
-          comment, not buried or omitted.
+          The agent does not simply reassign to QA after fixing the two reported issues.
+          It re-applies the full done criteria: runs type checks, linting, and tests;
+          runs deslop to remove AI artifacts; runs validate-delivery to confirm no
+          regressions; and only then reassigns to QA & Release Lead. It treats the
+          done criteria as a checklist to re-run in full, not just the specific items
+          QA called out.
+
+  - description: "Plan has a gap — asks CTO to re-plan rather than improvising"
+    vars:
+      scenario: |
+        You are implementing task AGE-52 "Add rate limiting to API endpoints". The CTO's
+        plan says: "Step 4: Configure the rate limiter with appropriate limits per endpoint."
+        But the plan gives no specifics — no numbers, no tiers, no guidance on which
+        endpoints need stricter limits.
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent does NOT invent rate limit values or make architectural decisions about
+          tiers and thresholds. It recognizes this as a gap in the plan that requires CTO
+          judgment, and asks the CTO (via comment or reassignment) to clarify the specific
+          limits before proceeding. It may describe exactly what information it needs, but
+          it does not proceed with implementation by guessing.
+
+  - description: "Blocked 2+ heartbeats — escalates to CTO with full context"
+    vars:
+      scenario: |
+        You are implementing task AGE-53 "Integrate with Stripe webhooks". You are blocked
+        waiting for the DevOps team to provision a Stripe test account. You posted a comment
+        2 heartbeats ago explaining the blocker. No response yet. Your task is still
+        status=blocked.
+
+        What do you do this heartbeat?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent escalates rather than continuing to wait passively. It reassigns the
+          task to the CTO with status blocked and includes full context: what it was working
+          on, what external dependency is blocking it, how long it has been blocked, and
+          what the CTO needs to do to unblock it (e.g. coordinate with DevOps or find an
+          alternative path). It does not simply post another comment and exit without
+          changing the assignee.

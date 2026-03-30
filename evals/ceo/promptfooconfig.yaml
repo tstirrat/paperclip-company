@@ -7,13 +7,13 @@ prompts:
     label: ceo-baseline
 
 providers:
-  - id: anthropic:messages:claude-sonnet-4-6
+  - id: openrouter:anthropic/claude-3.5-sonnet
     config:
       max_tokens: 600
 
 defaultTest:
   options:
-    provider: anthropic:messages:claude-sonnet-4-6
+    provider: openrouter:anthropic/claude-3.5-sonnet
 
 tests:
   - description: "Sent-back task — delegates to CTO, does not implement"
