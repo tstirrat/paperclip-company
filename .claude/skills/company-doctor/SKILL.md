@@ -7,14 +7,10 @@ description: >
   poor handoff patterns, and suboptimal model selection, then rewrites the
   agent instruction bundles and .paperclip.yaml so agents stop dropping tasks,
   stop stepping on each other, and operate autonomously with minimal human
-  pushing. Use when: a company's agents aren't working well together, tasks
-  keep getting dropped, agents step on each other's work, a newly created
-  company needs tuning before import, agents need too much human intervention,
-  or you want to optimize agent model assignments. Trigger on: "agents aren't
-  working together", "tasks keep getting dropped", "agents step on each other",
-  "tune this company", "optimize my company", "agents aren't autonomous",
-  "fix the agents", "company doctor", or when someone points you at a company
-  package folder and asks you to improve it.
+  pushing. ONLY invoke when the user explicitly requests it — e.g. "/company-doctor",
+  "run company doctor", or "diagnose/fix this company package". This is a heavy,
+  multi-step diagnostic tool. Do NOT auto-trigger on general agent complaints,
+  keywords, or tangentially related questions.
 ---
 
 # Company Doctor
@@ -50,78 +46,6 @@ boundaries, agents:
 The fix is giving each agent clear, role-specific operating instructions that
 include the Paperclip runtime model, their org position, concrete boundaries,
 and explicit handoff patterns.
-
-## The Paperclip Runtime Model
-
-This section encodes core Paperclip concepts so the skill works without access
-to the Paperclip source code. When writing agent instructions, these are the
-runtime realities agents must understand.
-
-### Heartbeats
-
-Agents don't run continuously. They execute in **heartbeats** — short execution
-windows triggered by Paperclip. Each heartbeat, the agent wakes up, does work,
-and exits. Heartbeats are triggered by:
-
-- **Assignment**: a task was assigned to the agent
-- **Timer**: the agent has a scheduled interval (e.g., every 5 minutes)
-- **Mention**: someone @-mentioned the agent in a comment
-- **On-demand**: the board manually woke the agent
-
-Each heartbeat costs budget (tokens = money). Wasted heartbeats — waking up
-and doing nothing, redoing work, or doing someone else's job — burn budget
-with no value.
-
-### Tasks (Issues)
-
-Work is tracked as **issues** with these statuses:
-`backlog` → `todo` → `in_progress` → `in_review` → `done` (or `blocked`, `cancelled`)
-
-Each issue has exactly **one assignee** (agent or human). Issues have a
-`parentId` (for subtask hierarchy) and `goalId` (for company goal alignment).
-
-### Checkout
-
-Before working on a task, agents must **checkout** — an atomic claim that
-prevents two agents from working the same task. If another agent already
-owns a task, checkout returns `409 Conflict` — the agent must back off and
-pick a different task. Never retry a 409.
-
-### Inbox
-
-Agents find their work by querying their inbox: assigned tasks filtered by
-status. Priority order: `in_progress` first (resume what you started), then
-`todo` (start new work), then `blocked` (only if you have new info to
-unblock it).
-
-### Environment Variables
-
-Paperclip injects context via env vars:
-- `PAPERCLIP_AGENT_ID`, `PAPERCLIP_COMPANY_ID` — identity
-- `PAPERCLIP_RUN_ID` — current heartbeat run (include in API headers)
-- `PAPERCLIP_TASK_ID` — the task that triggered this wake (if any)
-- `PAPERCLIP_WAKE_REASON` — why this heartbeat was triggered
-- `PAPERCLIP_WAKE_COMMENT_ID` — the comment that triggered this wake (if mention)
-
-### The Paperclip Skill
-
-Every agent should have the `paperclip` skill in their skills list. This skill
-provides the API reference, comment formatting rules, and coordination protocol
-details. The agent instructions you write should cover *behavioral patterns*
-(when and why to do things), while the `paperclip` skill covers *API mechanics*
-(how to call the endpoints).
-
-### Comments and Communication
-
-Agents communicate via issue comments. Comments should be concise markdown.
-Ticket references must be wrapped in links: `[PAP-123](/PAP/issues/PAP-123)`.
-Agents must comment on in-progress work before exiting a heartbeat — this is
-how the rest of the company knows work is progressing.
-
-### Budget
-
-Agents have monthly budgets. Auto-paused at 100%. Above 80%, focus on critical
-tasks only. @-mentions trigger heartbeats and cost budget — use sparingly.
 
 ## Process
 
@@ -202,6 +126,8 @@ Also update **.paperclip.yaml** with model recommendations.
 
 Read `references/instruction-patterns.md` for templates and patterns.
 Read `references/failure-modes.md` to understand which patterns fix which problems.
+Read `references/runtime-model.md` for Paperclip runtime concepts (heartbeats, checkout,
+inbox, env vars) to encode accurately in agent instructions.
 
 #### Progressive Disclosure
 
@@ -408,3 +334,4 @@ of what changed.
 |---|---|
 | Generating instruction content for agents | `references/instruction-patterns.md` |
 | Understanding failure modes and their fixes | `references/failure-modes.md` |
+| Writing runtime concepts into agent instructions | `references/runtime-model.md` |
