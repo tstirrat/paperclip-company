@@ -73,6 +73,7 @@ build_dispatcher() {
 }
 
 build_agent ceo
+build_agent cto
 build_agent qa-release-lead
 build_agent staff-engineer
 build_dispatcher

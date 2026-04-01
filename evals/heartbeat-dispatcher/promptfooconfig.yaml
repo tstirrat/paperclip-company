@@ -7,13 +7,13 @@ prompts:
     label: heartbeat-dispatcher-baseline
 
 providers:
-  - id: openrouter:anthropic/claude-3.5-sonnet
+  - id: openrouter:anthropic/claude-haiku-4.5
     config:
       max_tokens: 600
 
 defaultTest:
   options:
-    provider: openrouter:anthropic/claude-3.5-sonnet
+    provider: openrouter:anthropic/claude-haiku-4.5
 
 tests:
   - description: "Stall — in_progress CTO task idle >2h triggers nudge"

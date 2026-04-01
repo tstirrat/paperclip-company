@@ -7,13 +7,13 @@ prompts:
     label: staff-engineer-baseline
 
 providers:
-  - id: openrouter:anthropic/claude-3.5-sonnet
+  - id: openrouter:anthropic/claude-sonnet-4.6
     config:
       max_tokens: 600
 
 defaultTest:
   options:
-    provider: openrouter:anthropic/claude-3.5-sonnet
+    provider: openrouter:anthropic/claude-sonnet-4.6
 
 tests:
   - description: "No worktree — blocks task and returns to CEO"

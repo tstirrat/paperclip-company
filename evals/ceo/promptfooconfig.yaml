@@ -7,13 +7,13 @@ prompts:
     label: ceo-baseline
 
 providers:
-  - id: openrouter:anthropic/claude-3.5-sonnet
+  - id: openrouter:anthropic/claude-sonnet-4.6
     config:
       max_tokens: 600
 
 defaultTest:
   options:
-    provider: openrouter:anthropic/claude-3.5-sonnet
+    provider: openrouter:anthropic/claude-sonnet-4.6
 
 tests:
   - description: "Sent-back task — delegates to CTO, does not implement"
@@ -50,6 +50,23 @@ tests:
           than 2 hours). It takes a concrete push action — either posting a comment asking
           the CTO for a status update, or reassigning with fresh instructions.
           It does not ignore the task or wait passively.
+
+  - description: "New task — routes to CTO, does not ask for plan approval"
+    vars:
+      scenario: |
+        A user has just sent you a new task: "Add webhook support for deployment events.
+        We need to POST to configurable URLs when a deploy starts and finishes."
+
+        You've confirmed the task is worth doing. You're ready to hand it off.
+        What do you say in your handoff comment, and who do you assign it to?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent assigns the task to the CTO with a comment that asks the CTO to scope,
+          plan, and hand off directly to the Staff Engineer. It does NOT ask the CTO to
+          return a plan for CEO approval. It does NOT assign to the Staff Engineer directly.
+          The CEO's job is deciding the task is worth doing and passing context to the CTO —
+          not gating the CTO's plan.
 
   - description: "Phase gate enforcement — CTO must not close issues"
     vars:

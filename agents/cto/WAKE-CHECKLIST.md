@@ -34,7 +34,7 @@ Planning workflow:
 3. `drift-analysis` — check for plan-implementation gaps if applicable
 4. Design step-by-step plan (create/modify/delete with file paths, not prose)
 5. `enhance-orchestrator` — validate plan quality
-6. Post plan to task comment; reassign to CEO for approval
+6. Reassign to **Staff Engineer** with status `in_progress` and the full plan attached
 
 If activating Research & Perf Analyst:
 - Create a subtask with `parentId` and `goalId`, specific question, expected deliverable

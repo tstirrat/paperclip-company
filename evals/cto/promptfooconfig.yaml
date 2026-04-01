@@ -1,0 +1,95 @@
+description: "CTO agent behavior — current vs baseline"
+
+prompts:
+  - id: file://../prompts/templates/cto-current.json
+    label: cto-current
+  - id: file://../prompts/templates/cto-baseline.json
+    label: cto-baseline
+
+providers:
+  - id: openrouter:anthropic/claude-sonnet-4.6
+    config:
+      max_tokens: 600
+
+defaultTest:
+  options:
+    provider: openrouter:anthropic/claude-sonnet-4.6
+
+tests:
+  - description: "Normal planning flow — hands off directly to Staff Engineer, not CEO"
+    vars:
+      scenario: |
+        CEO has assigned you task AGE-70 "Add webhook support for deployment events."
+        The handoff comment says: "Scope and plan this, then hand off directly to
+        Staff Engineer."
+
+        You run repo-intel, analyze the codebase, and produce a solid implementation plan.
+        You are satisfied the plan is complete and actionable.
+
+        Who do you assign the task to, with what status, and what do you say in your
+        handoff comment?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent assigns the task directly to the Staff Engineer with status in_progress.
+          It does NOT reassign to the CEO for plan approval. It includes the full
+          implementation plan in the comment — numbered steps, file paths, action types,
+          risk notes — so the Staff Engineer can execute without ambiguity. It instructs
+          the Staff Engineer to run deslop and validate-delivery before handing off to
+          QA & Release Lead.
+
+  - description: "QA reviewer feedback — re-plans and sends to Staff Engineer, not CEO"
+    vars:
+      scenario: |
+        QA & Release Lead has assigned you task AGE-70 with status `todo` and this comment:
+
+        "PR has 1 collaborator comment requiring re-scoping before re-implementation.
+        ### @alice [review/CHANGES_REQUESTED] [permission:write]
+        The rate limiting stores state in-process. This won't work across multiple server
+        instances. Needs a Redis-backed store."
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent treats this as a re-scoping request. It revises its implementation plan
+          to address the Redis-backed store requirement. It then assigns the task directly
+          to the Staff Engineer with status in_progress — it does NOT route back to the CEO
+          for approval, and does NOT route back to QA. It includes the revised plan in the
+          handoff comment.
+
+  - description: "Plan has a significant business question — escalates to CEO before handing off"
+    vars:
+      scenario: |
+        You are planning task AGE-71 "Add tiered rate limiting to the API". Your codebase
+        analysis is complete. But the plan requires a decision you can't make:
+        the rate limits per tier (free: 100/hr, pro: 1000/hr, enterprise: unlimited)
+        are not specified anywhere in the requirements, and the numbers have real business
+        and pricing implications.
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent recognizes this as a business/priority decision outside its scope.
+          It escalates to the CEO (not the Staff Engineer) with a specific, focused question
+          about the rate limit values before finalizing the plan. It does NOT invent the
+          values or proceed with implementation. It explains clearly what information it
+          needs and why it can't make this call itself.
+
+  - description: "Plan gap is technical, not business — CTO resolves it, does not escalate"
+    vars:
+      scenario: |
+        You are planning task AGE-72 "Migrate database queries from raw SQL to the ORM".
+        During codebase analysis with repo-intel you find 3 queries that use PostgreSQL-
+        specific syntax (LATERAL JOIN) that your ORM doesn't support natively.
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent resolves this as a technical question within its own scope. It identifies
+          an approach (e.g. raw query escape hatch, native query support in the ORM, or
+          flagging those 3 queries as out of scope) without escalating to the CEO. Technical
+          gaps in the plan are the CTO's responsibility to resolve. It does not treat every
+          uncertainty as a reason to escalate upward.

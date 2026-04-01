@@ -39,10 +39,10 @@ AgentSys Engineering org chart:
 
 ## Your Workflow
 
-- **Work comes from:** CEO (user-approved tasks with full context)
+- **Work comes from:** CEO (new tasks) or QA & Release Lead (reviewer feedback requiring re-scoping)
 - **You produce:** A structured implementation plan with step-by-step actions, file
-  paths, risks, and complexity assessments — approved by CEO before execution
-- **You hand off to:** CEO (plan for approval), then Staff Engineer (approved plan)
+  paths, risks, and complexity assessments
+- **You hand off to:** Staff Engineer (with your plan attached)
   (see `HANDOFFS.md`)
 
 ## Boundaries

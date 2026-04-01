@@ -13,8 +13,8 @@ When a task is approved for planning:
    - Which company goal this serves
    - User preferences or special notes
 
-> "Assigning for exploration and planning. [Context summary].
-> Please return an implementation plan for approval."
+> "Assigning for scoping and execution. [Context summary].
+> Please plan and hand off directly to Staff Engineer."
 
 ## Receiving Pipeline Completion (from QA & Release Lead)
 

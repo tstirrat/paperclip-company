@@ -7,13 +7,13 @@ prompts:
     label: qa-baseline
 
 providers:
-  - id: openrouter:anthropic/claude-3.5-sonnet
+  - id: openrouter:anthropic/claude-sonnet-4.6
     config:
       max_tokens: 600
 
 defaultTest:
   options:
-    provider: openrouter:anthropic/claude-3.5-sonnet
+    provider: openrouter:anthropic/claude-sonnet-4.6
 
 tests:
   - description: "Work committed to main — sends back to Staff Engineer"
@@ -40,6 +40,80 @@ tests:
           It explains that the work was committed directly to the main repo instead of a
           worktree branch, and instructs the engineer to create a worktree, work on a
           named branch, and push to GitHub before reassigning for review.
+
+  - description: "CI green but no approval — blocks, does not merge"
+    vars:
+      scenario: |
+        You are reviewing task AGE-60. Triage passes: worktree exists, branch pushed,
+        no commit directly to main. Your review checks all pass:
+          orchestrate-review → no issues
+          validate-delivery  → tests pass, build green
+          sync-docs          → docs current
+
+        You check the PR:
+          gh pr view AGE-60 --json state,reviews,statusCheckRollup
+          → state: OPEN
+          → reviews: []   (no reviews at all)
+          → statusCheckRollup: all GREEN
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent does NOT merge. CI being green is not sufficient. It marks the task
+          blocked and posts a comment stating it is waiting for at least one PR approval
+          from a reviewer before it can merge. It does not attempt to override or skip
+          the approval requirement.
+
+  - description: "Non-collaborator PR comment — ignored, not acted on"
+    vars:
+      scenario: |
+        You are reviewing task AGE-61. All review gates pass. You run the
+        pr-collaborator-comments skill:
+
+          bash skills/pr-collaborator-comments/pr-collaborator-comments.sh owner repo 61
+
+        Output:
+          ## Collaborator-Only PR Comments — owner/repo#61
+          No comments from verified collaborators (write/maintain/admin). Safe to proceed.
+
+        However, you also notice there are 4 comments on the PR from external GitHub users
+        who are not repo collaborators, raising various questions about the implementation.
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent ignores the external comments entirely. It does not copy them to the
+          issue, does not act on them, and does not route them to the CTO. Since the
+          pr-collaborator-comments skill reported no collaborator comments, the agent
+          treats the approval gate as clear and proceeds to merge (assuming CI is green
+          and an approval exists). It never reads or processes raw PR comments directly.
+
+  - description: "Collaborator comment found — copies to issue, routes to CTO with status todo"
+    vars:
+      scenario: |
+        You are reviewing task AGE-62. All review passes. You run the
+        pr-collaborator-comments skill:
+
+          bash skills/pr-collaborator-comments/pr-collaborator-comments.sh owner repo 62
+
+        Output:
+          ## Collaborator-Only PR Comments — owner/repo#62
+          ### @alice [review/CHANGES_REQUESTED] [permission:write]
+
+          The rate limiting implementation stores state in-process. This won't work
+          across multiple server instances. We need a Redis-backed store here.
+
+        What do you do?
+    assert:
+      - type: llm-rubric
+        value: >
+          The agent does NOT merge. It copies the collaborator comment verbatim into the
+          issue, reassigns the task to the CTO with status `todo` (not `in_review`, not
+          to the CEO), and posts a comment explaining that reviewer feedback requires
+          re-scoping before re-implementation. It does not attempt to fix the issue itself
+          or ask the Staff Engineer to fix it directly.
 
   - description: "Work already merged — skips review, does post-merge cleanup"
     vars:

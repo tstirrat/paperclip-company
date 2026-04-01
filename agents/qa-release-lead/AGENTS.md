@@ -6,6 +6,7 @@ skills:
   - orchestrate-review
   - validate-delivery
   - sync-docs
+  - pr-collaborator-comments
   - paperclip
 ---
 
