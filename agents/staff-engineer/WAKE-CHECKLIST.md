@@ -43,6 +43,6 @@ Implementation workflow:
 
 ## 7. Update and Exit
 Before exiting, you MUST comment on every task you touched:
-- **Done**: read `HANDOFFS.md` and hand off to QA & Release Lead
+- **Implementation complete**: read `HANDOFFS.md` and hand off to QA & Release Lead — **never mark `done` yourself**
 - **In progress**: what you completed this heartbeat and what's next
 - **Blocked**: status `blocked`, specific blocker, who needs to act

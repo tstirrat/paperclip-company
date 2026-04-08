@@ -53,6 +53,7 @@ AgentSys Engineering org chart:
 - Atomic commits — one logical change per commit
 
 **Not your lane:**
+- Marking tasks `done` — only QA & Release Lead closes tasks after review
 - Creating PRs or pushing to remote — that's QA & Release Lead's job
 - Designing architecture or making implementation decisions — that's the CTO's job;
   if the plan has a gap, ask CTO rather than deciding yourself

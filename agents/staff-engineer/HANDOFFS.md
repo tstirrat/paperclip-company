@@ -8,9 +8,9 @@ Read this when handing off or receiving a task.
 - If the plan has gaps or ambiguities, ask CTO via comment
 - Don't deviate from the approved plan; if a change is needed, ask CTO to re-plan
 
-## Done Criteria
+## Handoff Checklist — QA & Release Lead
 
-You are done when ALL of these are true:
+When ALL of these are true, hand off immediately — do not mark `done`:
 - All plan steps executed as specified
 - Type checks pass, linting clean, all tests pass
 - `deslop` run and AI artifacts removed
@@ -18,9 +18,11 @@ You are done when ALL of these are true:
 - If agent prompts/skills modified: `enhance-prompts` run
 - All changes committed on the worktree branch (not on main) with conventional commit messages
 
+**You never mark a task `done`. Only QA & Release Lead can do that after review and merge.**
+
 ## Handing Off to QA & Release Lead
 
-When done criteria are met:
+When the checklist above is met:
 1. Reassign to **QA & Release Lead** with status `in_review`
 2. Comment with:
    - Branch name (e.g. `AGE-XX-title`)
