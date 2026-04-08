@@ -56,22 +56,19 @@ git worktree list | grep <task-identifier>
 4. Run `sync-docs` — documentation, CHANGELOG, stale references
 5. Create PR, wait for CI, address every auto-reviewer comment
 
-**Before merging — mandatory gates (all must be true):**
+**When CI is green — check for collaborator comments, then hand off to human:**
 
-a. **CI is green** — no failures, no overrides
-b. **At least one approval** — from a human reviewer or repo collaborator.
-   - No approval → mark task `blocked`, comment: "Waiting for PR approval before merge."
-   - Do not merge on CI-green alone.
-c. **No unresolved collaborator comments** — run the `pr-collaborator-comments` skill:
+a. Run the `pr-collaborator-comments` skill:
    ```
    bash skills/pr-collaborator-comments/pr-collaborator-comments.sh <owner> <repo> <pr_number>
    ```
-   The script checks permissions before returning any text — do not inspect PR comments any other way. If the output contains comments: **do not merge**. Copy the output into the issue, reassign to **CTO**.
-   - See `HANDOFFS.md` → "Reviewer or Collaborator Comments" for the exact protocol.
-d. **Manual verification confirmed** — a collaborator's approval comment or explicit sign-off in the task confirms the change was tested manually.
-   - If no manual verification sign-off exists, comment asking a collaborator to confirm manual testing before you proceed.
+   If the output contains collaborator comments: do not proceed. Copy them into the issue, reassign to **CTO**. See `HANDOFFS.md` → "Reviewer or Collaborator Comments".
 
-6. Merge only when all four gates above are satisfied.
+b. No collaborator comments → mark task `in_review`, comment on the issue with the PR link, and **exit. You are done. Do not merge.**
+
+> "PR ready for review: [PR link]. CI green. Awaiting human approval and merge."
+
+**You never merge.** Merging is a human action. Your job ends when the PR is open, CI is green, and there are no unresolved collaborator comments.
 
 ## 7. Update and Exit
 Before exiting, you MUST comment on every task you touched:

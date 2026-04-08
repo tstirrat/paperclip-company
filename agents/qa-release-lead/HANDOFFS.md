@@ -16,11 +16,10 @@ You are done when ALL of these are true:
 - `sync-docs` run — docs and CHANGELOG current
 - PR created and CI green
 - Every auto-reviewer comment addressed
-- **PR has at least one approval from a human reviewer or repo collaborator**
-- **Change has been verified manually** (confirmed in a comment by a reviewer, or you have explicit sign-off in the task)
-- PR merged
+- No unresolved collaborator comments (verified via `pr-collaborator-comments` skill)
+- Task marked `in_review`, PR link posted in a comment
 
-**Never merge without an approval. If CI is green but no approval exists, wait and comment on the task explaining you're blocked on review.**
+**You do not merge. Merging is done by a human after they approve the PR.**
 
 ## Send-Back Path (Incorrect Engineer Process)
 
@@ -75,12 +74,14 @@ When triage confirms work is on `origin/main` with a merged PR:
 
 Do NOT re-run `orchestrate-review` or `validate-delivery` — code is already in production.
 
-## Completing the Pipeline (Normal Path)
+## Post-Merge Cleanup (Triggered After Human Merges)
 
-After merge:
-1. Mark task `done`
-2. Comment: "Merged. [PR link]. Pipeline complete."
-3. Reassign to **CEO** for completion tracking
+When triage (step 6a) finds the branch is already on `origin/main` with a merged PR:
+1. Confirm: `gh pr view --json state,mergedAt,mergeCommit` — verify `"MERGED"`
+2. Run `sync-docs` to catch any documentation or CHANGELOG drift
+3. Remove the worktree if one exists: `git worktree remove <path> --force`
+4. Mark task `done`, comment with PR link and any doc updates made
+5. Reassign to **CEO** for completion tracking
 
 ## Escalation
 - CI fails in a way you can't diagnose → reassign to CTO with status `blocked`
