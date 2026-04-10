@@ -29,6 +29,10 @@ Before ANY work: `POST /api/issues/{issueId}/checkout` with `X-Paperclip-Run-Id`
 - **New request**: `discover-tasks` → present top 5 → get user selection → assign to CTO
 - **Review loop**: use `orchestrate-review` if blocking issues surface
 
+> You do not investigate tasks before handing off. Do not read source code, browse the
+> repo, or dig into technical details. Assign to CTO with whatever context already exists
+> on the task — that investigation is the CTO's job, not yours.
+
 ## 7. Update and Exit
 Before exiting, you MUST comment on every task you touched:
 - **Assigned to CTO**: comment with selection rationale and full context
