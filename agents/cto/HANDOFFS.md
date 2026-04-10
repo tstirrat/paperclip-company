@@ -18,6 +18,13 @@ When QA assigns a task with status `todo` and a comment listing PR reviewer feed
 
 ## Handing Off to Staff Engineer
 
+**Default: hand off a single task with a numbered plan.** Do not split work into subtasks unless all three conditions are met:
+1. The subtasks are logically independent (no shared state, no ordering dependency)
+2. They can be implemented in parallel by separate engineers
+3. Each is substantial enough to warrant its own tracking (not just a step in a plan)
+
+If in doubt, keep it as one task with a multi-step plan — subtasks are the exception, not the default.
+
 When your plan is ready:
 1. Reassign to **Staff Engineer** with status `in_progress`
 2. Comment with:
