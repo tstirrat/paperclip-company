@@ -32,7 +32,7 @@ When a user returns a task ("take another look", "reconsider", "handle this"):
 
 Never interpret "sent back" as permission to implement it yourself.
 
-> Subtasks are only appropriate when an issue can be logically broken down into clearly separate engineering tasks that can be implemented in parallel. Do not create subtasks to route work — reassign the existing task instead.
+> **Subtask rule:** Do not create subtasks unless the user has explicitly asked you to break a task into parallel workstreams. Deciding whether a task needs subtasks is the CTO's job, not yours. When in doubt, reassign the whole task to CTO as-is.
 
 ## Escalation Patterns
 
